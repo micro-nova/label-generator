@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Check if Inkscape and barcode are installed
+if ! command -v inkscape &> /dev/null || ! command -v barcode &> /dev/null
+then
+    echo "inkscape and/or barcode are not installed. Please install them and try again."
+    exit 1
+fi
+
+# Check if correct number of arguments are provided
+if [ "$#" -lt 2 ]; then
+    echo "Usage: $0 <serial_number> <model_number>"
+    exit 1
+fi
+
+SERIAL_NUMBER=$1
+MODEL_NUMBER=$2
+SKIP_PRINT=$3
+
+# Generate barcode
+barcode -b "${MODEL_NUMBER},${SERIAL_NUMBER}" -o barcode.svg -g 282.5x37.5+0+0 -S -n
+
+# Create the main SVG file with the required content
+cat << EOF > temp_label.svg
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="450" height="150">
+  <rect width="100%" height="100%" fill="white"/>
+  <g transform="translate(20, 0)">
+    $(cat barcode.svg | grep -v '<?xml' | grep -v '<svg' | grep -v '</svg>')
+  </g>
+  <text x="0" y="65" font-family="sans-serif" font-size="25" fill="black">
+    <tspan x="15" dy="1.3em">Model: ${MODEL_NUMBER}</tspan>
+    <tspan x="15" dy="1.1em">S/N: ${SERIAL_NUMBER}</tspan>
+  </text>
+  <text x="0" y="80" font-family="sans-serif" font-size="30" fill="black">
+    <tspan x="230" dy="1.3em">Made in USA</tspan>
+</svg>
+EOF
+
+# Convert the SVG to PDF
+inkscape temp_label.svg --export-pdf=label_${SERIAL_NUMBER}.pdf
+
+# Clean up files
+rm barcode.svg temp_label.svg
+
+# Print the label
+if [ "${SKIP_PRINT}" == "-s" ]; then
+    echo "Skipping print/delete"
+    exit 0
+fi
+
+lp label_${SERIAL_NUMBER}.pdf -d Zebra_Technologies_ZTC_ZD411-300dpi_ZPL -o fit-to-page
+
+rm label_${SERIAL_NUMBER}.pdf
+
+echo "Printed label for ${MODEL_NUMBER} with serial number: ${SERIAL_NUMBER}"
