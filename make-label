@@ -19,5 +19,8 @@ while true; do
         *) echo "Invalid choice. Please enter 1, 2, or 3.";;
     esac
 done
+read -p "How many to print? [2]: " quantity
 
-$(dirname $0)/label-gen "${serial_number}" "${model_number}"
+quantity=${quantity:-2}
+
+$(dirname $0)/label-gen "${serial_number}" "${model_number}" ${quantity} 

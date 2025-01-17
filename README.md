@@ -10,9 +10,10 @@
 - label-gen:
   - script to generate the label with arbirary serial number and model number
   - takes in args as shown below:
-      - `label_gen <serial_number> <model_number> [-s]`
+      - `label_gen <serial_number> <model_number> <quantity> [-s]`
       - `serial number` is the serial number of the unit e.g. 123
       - `model_number` is the model number of the unit e.g. AP1-S4Z6
+      - `quantity` is the number of labels to print (note you may only print between 1 and 9 at a time) e.g. 2
       - `-s` will skip printing and deleting the label leaving you with a pdf, this is useful for testing
 ### Requirements
 - Inkscape

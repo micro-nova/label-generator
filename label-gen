@@ -8,14 +8,26 @@ then
 fi
 
 # Check if correct number of arguments are provided
-if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 <serial_number> <model_number>"
+if [ "$#" -lt 3 ]; then
+    echo "Usage: $0 <serial_number> <model_number> <quantity> [-s]"
     exit 1
 fi
 
 SERIAL_NUMBER=$1
 MODEL_NUMBER=$2
-SKIP_PRINT=$3
+QUANTITY=$3
+SKIP_PRINT=$4
+
+# Validate quantity to prevent printing too many from a typo
+if ((QUANTITY < 0 || > 9)) then
+  echo "Please only print between 1 and 9 labels at a time."
+  exit 1
+fi
+
+if ((QUANTITY == 0)) then
+  echo "Please use -s flag to skip printing."
+  exit 1
+fi
 
 # Generate barcode
 barcode -b "${MODEL_NUMBER},${SERIAL_NUMBER}" -o barcode.svg -g 282.5x37.5+0+0 -S -n
@@ -49,8 +61,11 @@ if [ "${SKIP_PRINT}" == "-s" ]; then
     exit 0
 fi
 
-lp label_${SERIAL_NUMBER}.pdf -d Zebra_Technologies_ZTC_ZD411-300dpi_ZPL -o fit-to-page
+for i in $(seq 1 $QUANTITY);
+do
+  lp label_${SERIAL_NUMBER}.pdf -d Zebra_Technologies_ZTC_ZD411-300dpi_ZPL -o fit-to-page
+done
 
 rm label_${SERIAL_NUMBER}.pdf
 
-echo "Printed label for ${MODEL_NUMBER} with serial number: ${SERIAL_NUMBER}"
+echo "Printed ${QUANTITY} label(s) for ${MODEL_NUMBER} with serial number: ${SERIAL_NUMBER}"
