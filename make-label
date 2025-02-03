@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Prompt for serial number
-read -p "Please enter the serial number: " serial_number
+read -p "Please enter the first serial number in the sequence: " serial_number
 
 # Display model number options
 echo "Please select a model number:"
@@ -19,8 +19,21 @@ while true; do
         *) echo "Invalid choice. Please enter 1, 2, or 3.";;
     esac
 done
-read -p "How many to print? [2]: " quantity
+read -p "How many of each label to print? [2]: " quantity
 
 quantity=${quantity:-2}
 
-$(dirname $0)/label-gen "${serial_number}" "${model_number}" ${quantity} 
+read -p "How many sets to print in sequence? [1]: " count 
+
+count=${count:-1}
+
+if ((count > 10 || count <= 0)) then
+    echo Please only print between 1 and 10 sets.
+    exit
+fi
+
+for i in $(seq 1 $count);
+do
+    serial_number=$((serial_number + 1))
+    $(dirname $0)/label-gen "${serial_number}" "${model_number}" ${quantity} 
+done
